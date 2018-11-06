@@ -1,0 +1,6 @@
+@-webkit-keyframes fadein {from {margin-top: 100px; opacity: 0;} to {margin-top: 0; opacity: 0.92;}}
+@keyframes fadein {from {margin-top: 100px; opacity: 0;} to {margin-top: 0; opacity: 0.92;}}
+
+.container {
+  animation: fadein 1.5s ease-in 0s 1 running;
+}

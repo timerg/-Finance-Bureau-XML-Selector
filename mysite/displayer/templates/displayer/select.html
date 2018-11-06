@@ -1,0 +1,41 @@
+{% load render_bundle from webpack_loader %}
+<!DOCTYPE html>
+<html>
+  <head>
+		<meta http-equiv="Content-type" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>財政局 xml 篩選器</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+    {% load static %}
+    <link rel="stylesheet" href="{% static "displayer/css/select.css" %}" />
+  </head>
+  <body>
+    <ul class="nav">
+      <li>
+        <a href="/admin/"> 前往管理頁面 </a>
+      </li>
+      <li>
+        <a href="/displayer/"> 回上傳頁面 </a>
+      </li>
+    </ul>
+    <div id="root">
+    </div>
+    <div id="csrf-token">
+      {% csrf_token %}
+    </div>
+  </body>
+  <script type="text/javascript">
+    var FILEJSON = {{ file_json|safe }}
+    var DELETELIST = null
+    {% if delete_list %}
+    DELETELIST = {{ delete_list|safe }}
+    {% endif %}
+    var FILENAME = "{{ file_name|safe }}"
+    var PARSEERROR = {{ parse_error|safe }}
+  </script>
+  <script type="text/javascript" src="{% static "displayer/js/download.js" %}"></script>
+  {% render_bundle 'main' %}
+</html>

@@ -1,0 +1,4 @@
+django
+xmljson
+lxml
+django-webpack-loader

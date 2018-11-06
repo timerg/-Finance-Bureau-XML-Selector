@@ -1,0 +1,13 @@
+scecret.py
+*.pyc
+db.*
+data
+.DS_Store
+migrations/
+runserver.bat
+note.txt
+node_modules
+webpack-stats.json
+init.js
+bundles/
+
