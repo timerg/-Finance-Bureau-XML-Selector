@@ -43,7 +43,7 @@ class App extends React.Component {
 
 		let trInfos = {}
 		let mergeCount = 0
-		iterateDict(this.dataDict.obj, obj => obj["@num"], (fileObj) => {
+		iterateDict(this.dataDict.obj, (fileObj) => {
 			if(trInfos[fileObj["@num"]]) {
 				console.error("Repeated num") // this shouldn't be called since server has survayed and fixed the num
 			}

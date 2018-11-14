@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import { iterateDict } from '../class/DataDict'
-import type { DataDictObj } from '../class/DataDict'
+import type { DataDictObj, FileContent, PathRecord } from '../class/DataDict'
 import _ from 'lodash'
 
 type Props = {
@@ -11,29 +11,36 @@ type Props = {
 }
 
 type TrInfos = {
-	[Number]: {
+	[number]: {
 		toShow: Boolean,
 		checked: Boolean
 	}
 }
+
+type TrInfoItem = {
+	fileObj: FileContent,
+	pathRecord: PathRecord
+}
+
+
 class DisplayTable extends React.Component <Props>{
-	trInfosArray: Array<mixed>
+	trInfosArray: Array<TrInfoItem>
 	constructor(props: Props) {
 		super(props)
 
 		this.trInfosArray = []
-		iterateDict(props.dataDictObj, obj => obj.hasOwnProperty('@num'), (fileObj, pathRecord) => {
-			let trInfo = {
+		iterateDict(props.dataDictObj, (fileObj, pathRecord) => {
+			let trInfoItem: TrInfoItem = {
 				fileObj: fileObj,
 				pathRecord: pathRecord,
 			}
-			this.trInfosArray.push(trInfo)
+			this.trInfosArray.push(trInfoItem)
 		})
 	}
 
 	// static getDerivedStateFromProps(props, state) {
 	// 	let newState = {}
-	// 	iterateDict(props.dataDictObj, obj => obj["@num"], (fileObj) => {
+	// 	iterateDict(props.dataDictObj, (fileObj) => {
 	// 		_.set(newState, `${fileObj["@num"]}.toShow`, fileObj.toShow)
 	// 		_.set(newState, `${fileObj["@num"]}.checked`, props.deleteListObj[fileObj["@num"]])
 	// 	})
@@ -43,12 +50,12 @@ class DisplayTable extends React.Component <Props>{
 	render() {
 		return (
 			<tbody>{
-				this.trInfosArray.map(trInfo =>{
-					let num = trInfo.fileObj["@num"]
+				this.trInfosArray.map(trInfoItem =>{
+					let num = trInfoItem.fileObj["@num"]
 					return <MyTr
 						key={num}
-						fileObj={trInfo.fileObj}
-						pathRecord={trInfo.pathRecord}
+						fileObj={trInfoItem.fileObj}
+						pathRecord={trInfoItem.pathRecord}
 						toShow={this.props.trInfos[num].toShow}
 						checked={this.props.trInfos[num].checked}
 						func={this.props.onCheck}

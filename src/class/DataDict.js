@@ -16,16 +16,22 @@ type FileJSONObj = {
 }
 
 
-
-export type DataDictObj = {	[number | string]: DataDictObj | FileContent }
-
-type FileContent = {
-	"@num": number,
-	"案由": string,
-	"isMerge"?: boolean
+export type DataDictObj = {
+	sort: "DataDictObj",
+	[number | string]: DF
 }
 
-type PathRecord = Array<string>
+export type FileContent = {
+	sort: "FileContent",
+	"@num": number,
+	"案由": string,
+	isMerge?: boolean
+}
+
+export type DF = DataDictObj | FileContent;
+
+
+export type PathRecord = Array<string>
 
 export class DataDict {
 	obj: DataDictObj;
@@ -53,19 +59,20 @@ export class DataDict {
 		    let cas_ = thisFile["案次號"]["$"]
 		    let volm = thisFile["卷次號"]["$"]
 			if(!this.obj[year]) {
-				this.obj[year] = {}
+				this.obj[year] = {sort: "DataDictObj"}
 			}
 			if(!this.obj[year][kind]) {
-				this.obj[year][kind] = {}
+				this.obj[year][kind] = {sort: "DataDictObj"}
 			}
 			if(!this.obj[year][kind][cas_]) {
-				this.obj[year][kind][cas_] = {}
+				this.obj[year][kind][cas_] = {sort: "DataDictObj"}
 			}
 			if(!this.obj[year][kind][cas_][volm]) {
-				this.obj[year][kind][cas_][volm] = {}
+				this.obj[year][kind][cas_][volm] = {sort: "DataDictObj"}
 			}
 
 			let fileContent: FileContent = {
+				sort: "FileContent",
 				"@num": thisFile["@num"],
 				"案由": thisFile["案由"]["$"],
 			}
@@ -75,11 +82,13 @@ export class DataDict {
 			if(hasMerge) {
 				let file = thisFile["目次號"]["$"]
 				this.obj[year][kind][cas_][volm][file] = {
+					sort: "DataDictObj",
 					"主文": fileContent,
 				}
 				lastFile = file
 			} else if(toMerge){
-				fileContent["isMerge"] = true
+				fileContent.isMerge = true
+				this.obj[year][kind][cas_][volm][lastFile] = {sort: "DataDictObj"}
 				this.obj[year][kind][cas_][volm][lastFile]["併文" + mergeFileCount.toString()] = fileContent
 				mergeFileCount = mergeFileCount + 1
 			} else {
@@ -92,28 +101,29 @@ export class DataDict {
 }
 
 
+
 function _iterateDict(
 		pathRecord: PathRecord,
-		dictObj: DataDictObj | FileContent,
-		stopCondition,
+		dictObj: DF,
 		proccessNode
 	) {
-	if(stopCondition(dictObj, pathRecord)) {
+	if(dictObj.sort === "FileContent") {
+	// if(dictObj.kind === "FileContent") {
 		proccessNode(dictObj, pathRecord)
 	} else {
-		// Object.keys(dictObj).map(key => {
 		_.forOwn(dictObj, (value, key) => {
-			_iterateDict(pathRecord.concat([key]), dictObj[key], stopCondition, proccessNode)
+			_iterateDict(pathRecord.concat([key]), dictObj[key], proccessNode)
 		})
 	}
 }
 
+
+
 // pass dataDictObj by reference
 export function iterateDict (
 		dictObject: DataDictObj,
-		stopCondition: (obj: DataDictObj | FileContent,	pathRecord?: PathRecord) => boolean,
-		proccessNode: (obj: DataDictObj | FileContent, pathRecord?: PathRecord) => mixed
+		proccessNode: (obj: FileContent, pathRecord: PathRecord) => mixed
 	) {
-	_iterateDict([], dictObject, stopCondition, proccessNode)
+	_iterateDict([], dictObject, proccessNode)
 }
 
