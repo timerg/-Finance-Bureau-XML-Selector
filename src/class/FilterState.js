@@ -1,5 +1,12 @@
+
+
+
+
 class FilterState{
-	constructor(obj = {
+
+
+
+	constructor(obj: {} = {
 		"年度號": "不篩選",
 		"分類號": "不篩選",
 		"案次號": "不篩選",
@@ -9,17 +16,17 @@ class FilterState{
         this["分類號"] = obj["分類號"]
         this["案次號"] = obj["案次號"]
         this["卷次號"] = obj["卷次號"]
-		
+
 		this.toArray = this.toArray.bind(this)
 		Object.freeze(this)
-		
+
 	}
 
 	print() {
 		return "|年度號: " + this["年度號"] + ", 分類號: " + this["分類號"] + ", 案次號: " + this["案次號"] + ", 卷次號: " + this["卷次號"]
 	}
-	
-	toArray(numOfLevel) {
+
+	toArray(numOfLevel: number) {
 		if(numOfLevel > 4) {
 			console.error("FilterState level out of range. It should be no more than 4")
 			return []

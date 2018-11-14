@@ -1,18 +1,33 @@
+// @flow
 import React from 'react'
-import { iterateDict } from 'class/DataDict'
+import { iterateDict } from '../class/DataDict'
+import type { DataDictObj } from '../class/DataDict'
 import _ from 'lodash'
 
-class DisplayTable extends React.Component{
-	constructor(props) {
+type Props = {
+	dataDictObj: DataDictObj,
+	trInfos: TrInfos,
+	onCheck: () => void
+}
+
+type TrInfos = {
+	[Number]: {
+		toShow: Boolean,
+		checked: Boolean
+	}
+}
+class DisplayTable extends React.Component <Props>{
+	trInfosArray: Array<mixed>
+	constructor(props: Props) {
 		super(props)
 
-		this.trInfos = []
-		iterateDict(props.dataDictObj, obj => obj["@num"], (fileObj, pathRecord) => {
+		this.trInfosArray = []
+		iterateDict(props.dataDictObj, obj => obj.hasOwnProperty('@num'), (fileObj, pathRecord) => {
 			let trInfo = {
 				fileObj: fileObj,
 				pathRecord: pathRecord,
 			}
-			this.trInfos.push(trInfo)
+			this.trInfosArray.push(trInfo)
 		})
 	}
 
@@ -28,7 +43,7 @@ class DisplayTable extends React.Component{
 	render() {
 		return (
 			<tbody>{
-				this.trInfos.map(trInfo =>{
+				this.trInfosArray.map(trInfo =>{
 					let num = trInfo.fileObj["@num"]
 					return <MyTr
 						key={num}

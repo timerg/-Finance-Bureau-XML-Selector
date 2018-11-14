@@ -1,17 +1,46 @@
+// @flow
+
 import _ from 'lodash'
 
 
-class DataDict {
-	constructor(dataDictObj = {}) {
+type FileJSONObj = {
+	"年度號": {"$": number},
+	"分類號": {"$": number},
+	"案次號": {"$": number},
+	"卷次號": {"$": number},
+	"目次號": {"$": number},
+	"@num": number,
+	"案由": {"$": string},
+	"有無併件"?: {"$": string},
+	"主併檔號"?: {"$": string},
+}
+
+
+
+export type DataDictObj = {	[number | string]: DataDictObj | FileContent }
+
+type FileContent = {
+	"@num": number,
+	"案由": string,
+	"isMerge"?: boolean
+}
+
+type PathRecord = Array<string>
+
+export class DataDict {
+	obj: DataDictObj;
+	buildFromObjectArr: () => mixed;
+
+	constructor(dataDictObj?: {} = {}) {
 		// this.obj = Object.create(dataDictObj)
 		this.obj = _.cloneDeep(dataDictObj)
 		// this._iterateDict = this._iterateDict.bind(this)
 
 	}
 
-	buildFromObjectArr(arr, checkFunc) {
+	buildFromObjectArr(arr: Array<FileJSONObj>) {
 		// 解決併文無檔號之問題
-		let lastFile = "0";
+		let lastFile = 0;			// 若 DataDict 的目次號中出現 0，代表有沒有主文的併文
 		let mergeFileCount = 1
 		for (var i = 0; i < arr.length; i++) {
 		    let thisFile = arr[i]
@@ -36,7 +65,7 @@ class DataDict {
 				this.obj[year][kind][cas_][volm] = {}
 			}
 
-			let fileContent = {
+			let fileContent: FileContent = {
 				"@num": thisFile["@num"],
 				"案由": thisFile["案由"]["$"],
 			}
@@ -51,7 +80,7 @@ class DataDict {
 				lastFile = file
 			} else if(toMerge){
 				fileContent["isMerge"] = true
-				this.obj[year][kind][cas_][volm][lastFile]["併文" + mergeFileCount] = fileContent
+				this.obj[year][kind][cas_][volm][lastFile]["併文" + mergeFileCount.toString()] = fileContent
 				mergeFileCount = mergeFileCount + 1
 			} else {
 				let file = thisFile["目次號"]["$"]
@@ -63,19 +92,28 @@ class DataDict {
 }
 
 
-function _iterateDict(pathRecord, dictObj, stopCondition, proccessNode) {
+function _iterateDict(
+		pathRecord: PathRecord,
+		dictObj: DataDictObj | FileContent,
+		stopCondition,
+		proccessNode
+	) {
 	if(stopCondition(dictObj, pathRecord)) {
 		proccessNode(dictObj, pathRecord)
 	} else {
-		Object.keys(dictObj).map(key => {
+		// Object.keys(dictObj).map(key => {
+		_.forOwn(dictObj, (value, key) => {
 			_iterateDict(pathRecord.concat([key]), dictObj[key], stopCondition, proccessNode)
 		})
 	}
 }
 
 // pass dataDictObj by reference
-function iterateDict(dictObject, stopCondition, proccessNode) {
+export function iterateDict (
+		dictObject: DataDictObj,
+		stopCondition: (obj: DataDictObj | FileContent,	pathRecord?: PathRecord) => boolean,
+		proccessNode: (obj: DataDictObj | FileContent, pathRecord?: PathRecord) => mixed
+	) {
 	_iterateDict([], dictObject, stopCondition, proccessNode)
 }
 
-export { DataDict, iterateDict}

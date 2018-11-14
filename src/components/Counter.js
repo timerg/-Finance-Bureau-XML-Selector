@@ -1,7 +1,20 @@
+// @flow
+
 import React from 'react'
 
+type CounterDisplayerType = {
+	fileName: String,
+	counter: {
+		all: Number,
+		mergeAll: Number,
+		display: Number,
+		mergeDisplay: Number
+	},
+	trInfos: {}
+}
 
-const CounterDisplayer = ({fileName, counter, trInfos}) => {
+
+const CounterDisplayer = ({ fileName, counter, trInfos }: CounterDisplayerType) => {
 	let checkedCounterAll = 0
 	let checkedCounterDisplayed = 0
 	Object.keys(trInfos).map((key) => {
@@ -16,9 +29,9 @@ const CounterDisplayer = ({fileName, counter, trInfos}) => {
 		<div className='counter'>
 			<span id='file-name'> {fileName} </span>
 			<span>&nbsp;&nbsp;</span>
-			<span id='row-counter'> 共 {counter.display} / {counter.all} </span>
+			<span id='row-counter'> 共 {counter.display.toString()} / {counter.all.toString()} </span>
 			件，含併案
-			<span id='merge-file-counter'> {counter.mergeDisplay} / {counter.mergeAll} </span>
+			<span id='merge-file-counter'> {counter.mergeDisplay.toString()} / {counter.mergeAll.toString()} </span>
 			件 ，已勾選
 			<span id='check-counter'> {checkedCounterDisplayed} / {checkedCounterAll} </span>
 			件
