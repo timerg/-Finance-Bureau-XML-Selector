@@ -88,7 +88,6 @@ export class DataDict {
 				lastFile = file
 			} else if(toMerge){
 				fileContent.isMerge = true
-				this.obj[year][kind][cas_][volm][lastFile] = {sort: "DataDictObj"}
 				this.obj[year][kind][cas_][volm][lastFile]["併文" + mergeFileCount.toString()] = fileContent
 				mergeFileCount = mergeFileCount + 1
 			} else {
@@ -112,7 +111,9 @@ function _iterateDict(
 		proccessNode(dictObj, pathRecord)
 	} else {
 		_.forOwn(dictObj, (value, key) => {
-			_iterateDict(pathRecord.concat([key]), dictObj[key], proccessNode)
+			if(key !== "sort") {
+				_iterateDict(pathRecord.concat([key]), dictObj[key], proccessNode)
+			}
 		})
 	}
 }
