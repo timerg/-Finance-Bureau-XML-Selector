@@ -1,4 +1,4 @@
-
+// @flow
 
 import React from 'react'
 import _ from 'lodash'
@@ -10,10 +10,43 @@ import UserActions from './UserActions'
 import ErrorPrompt from './ErrorPrompt'
 // Class
 import { DataDict, iterateDict} from 'class/DataDict'
-import FilterState from 'class/FilterState'
+import type { FileJSONObj, DataDictObj, FileContent, DF } from 'class/DataDict'
+import { FilterState } from 'class/FilterState'
+import type { FilterStateType } from 'class/FilterState'
 // import './lib/api.js'
 
-class App extends React.Component {
+type Data = {
+	ROWSET: {
+		ROW: Array<FileJSONObj>
+	}
+}
+
+export type TrInfos = {
+	[number]: {
+		toShow: boolean,
+		checked: boolean
+	}
+}
+
+type Props = 	{}
+type State = {
+	filterState: FilterStateType,
+	trInfos: TrInfos,
+	counter: {
+		all: number,
+		mergeAll: number,
+		display: number,
+		mergeDisplay: number,
+	}
+}
+
+class App extends React.Component <Props, State>{
+	dataDict: {obj: DataDictObj};
+	handleSelect: ({ [string]: number | string }) => void;
+	handleCheck: ( SyntheticInputEvent<HTMLInputElement> ) => void;
+	handleSelectAll: ( SyntheticInputEvent<HTMLInputElement> ) => void;
+
+
 	constructor() {
 		super()
 
@@ -22,7 +55,7 @@ class App extends React.Component {
 		this.handleCheck = this.handleCheck.bind(this)
 		this.handleSelectAll = this.handleSelectAll.bind(this)
 
-		let DATA = initDATA()
+		let DATA: Data = initDATA()
 
 		let deleteListObject = initDeleteList(DATA, DELETELIST)
 
@@ -38,7 +71,6 @@ class App extends React.Component {
 				+ eFile["案由"]["$"] + " ' 後的字"
 				)
 			console.error(e)
-			console.log(DATA.ROWSET.ROW)
 		}
 
 		let trInfos = {}
@@ -67,13 +99,11 @@ class App extends React.Component {
 			}
 		}
 
-		// free memory
-		DATA = null
 
 	}
 
 	// when selection change, update filterState
-	handleSelect(obj) {
+	handleSelect(obj: {[string]: number | string}) {
 
 		let newFilterState = this.state.filterState.setState(obj)
 
@@ -82,7 +112,7 @@ class App extends React.Component {
 		this.setState({ trInfos: newTrInfos });
 
 		// show selected things
-		let filterResult = filterDataDict(this.dataDict.obj, newFilterState.toArray(4), () => {mergeCount++} )
+		let filterResult = filterDataDict(this.dataDict.obj, newFilterState.toArray(4))
 		filterResult.array.map(key => {
 			this.setState(state => {
 				state.trInfos[key].toShow = true
@@ -104,7 +134,7 @@ class App extends React.Component {
 
 
 	// when a tr is checked, update deleteListObject
-	handleCheck(event) {
+	handleCheck(event: SyntheticInputEvent<HTMLInputElement>) {
 		let t = event.target
 		let newTrInfosState = {}
 		_.setWith(newTrInfosState, `${t.value}.checked`, event.target.checked, Object)
@@ -113,13 +143,14 @@ class App extends React.Component {
 		this.setState({trInfos: trInfos})
 	}
 
-	handleSelectAll(event) {
+	handleSelectAll(event: SyntheticInputEvent<HTMLInputElement>) {
 		let checked = event.target.checked
 		let newTrInfosState = {}
-		Object.keys(this.state.trInfos).map(key => {
+		_.forOwn(this.state.trInfos, (value, key) => {
 			if(this.state.trInfos[key].toShow) {
 				newTrInfosState[key] = {toShow: true, checked: checked}
 			}
+
 		})
 		this.setState({trInfos: newTrInfosState})
 	}
@@ -142,7 +173,7 @@ class App extends React.Component {
 
 
 
-function initDATA() {
+function initDATA(): Data {
 	var DATA = FILEJSON;
 	// handle anther FILE type (案卷層級)
 	if(!DATA.ROWSET.ROW && DATA.ROWSET["案件"]) {
@@ -156,7 +187,7 @@ function initDATA() {
 	return DATA
 }
 
-function initDeleteList(DATA, deleteList=null) {
+function initDeleteList(DATA, deleteList=null): { [number]:boolean } {
 	var deleteListObject = {}
 	//  initial deleteList
 	if(deleteList) {
@@ -175,46 +206,88 @@ function initDeleteList(DATA, deleteList=null) {
 
 
 
-function filterDataDict_(obj, stateArr, resultArr, mergeCount) {
-	if(stateArr.length === 0) {
-		Object.keys(obj).map(key => {
-			// 主併文
-			if(!obj[key]["@num"]) {
-				Object.keys(obj[key]).map(key2 => {
-					resultArr.push(obj[key][key2]["@num"])
-					if(obj[key][key2].isMerge) {
-						mergeCount++
-					}
+// function filterDataDict_(obj: DataDictObj, stateArr, resultArr: Array<number>, mergeCount) {
+// 	if(stateArr.length === 0) {
+// 		_.forOwn(obj, (value, key) => {
+// 			if(key !== "sort") {
+// 				// 主併文
+// 				if(obj[key].sort === "DataDict") {
+// 					_.forOwn(obj[key], (value, key2) => {
+// 						if(key2 !== "sort") {
+// 							// if(obj[key][key2].sort === "FileContent") {
+// 								resultArr.push(obj[key][key2]["@num"])
+// 								if(obj[key][key2].isMerge) {
+// 									mergeCount++
+// 								}
+// 							// } else {
+// 							// 	console.error("programming error. DataDictObj seems to be too deep")
+// 							}
+// 						// }
+// 					})
+// 				} else {
+// 					resultArr.push(obj[key]["@num"])
+// 					if(obj[key].isMerge) {
+// 						mergeCount++
+// 					}
+// 				}
+// 			}
+// 		})
+// 	} else {
+// 		if(stateArr[0] === "不篩選") {
+// 			Object.keys(obj).map(key => {
+// 				if(key !== "sort") {
+// 					let filterResult = filterDataDict_(obj[key], stateArr.slice(1, stateArr.length), [], mergeCount)
+// 					resultArr = resultArr.concat(filterResult.array)
+// 					mergeCount = filterResult.mergeCount
+// 				}
+// 			})
+// 		} else {
+// 			if(obj[stateArr[0]]) {
+// 				let filterResult = filterDataDict_(obj[stateArr[0]], stateArr.slice(1, stateArr.length), [], mergeCount)
+// 				resultArr = resultArr.concat(filterResult.array)
+// 				mergeCount = filterResult.mergeCount
+//
+// 			}
+// 		}
+// 	}
+// 	console.log(resultArr)
+// 	return {array: resultArr, mergeCount: mergeCount}
+// }
 
-				})
-			} else {
-				resultArr.push(obj[key]["@num"])
-				if(obj[key].isMerge) {
-					mergeCount++
-				}
+
+function filterDataDict_ (obj: DataDictObj, stateArr: Array<number | string>, resultArr: Array<number>, mergeCount: number) {
+	if(stateArr.length === 0) {
+		iterateDict(obj, (obj) => {
+			resultArr.push(obj["@num"])
+			if(obj.isMerge) {
+				mergeCount++
 			}
 		})
 	} else {
 		if(stateArr[0] === "不篩選") {
-			Object.keys(obj).map(key => {
-				let filterResult = filterDataDict_(obj[key], stateArr.slice(1, stateArr.length), [], mergeCount)
-				resultArr = resultArr.concat(filterResult.array)
-				mergeCount = filterResult.mergeCount
+			_.forOwn(obj, (value, key) => {
+					if(key !== "sort" && value.sort === "DataDictObj") {
+						let filterResult = filterDataDict_(value, stateArr.slice(1, stateArr.length), [], mergeCount)
+						resultArr = resultArr.concat(filterResult.array)
+						mergeCount = filterResult.mergeCount
+					} else if (value.sort === "FileContent") {
+						console.error("programming error")
+					}
 			})
 		} else {
-			if(obj[stateArr[0]]) {
+			if(obj[stateArr[0]] && obj[stateArr[0]].sort === "DataDictObj") {
 				let filterResult = filterDataDict_(obj[stateArr[0]], stateArr.slice(1, stateArr.length), [], mergeCount)
 				resultArr = resultArr.concat(filterResult.array)
 				mergeCount = filterResult.mergeCount
-
+			} else {
+				console.error("programming error")
 			}
 		}
 	}
 	return {array: resultArr, mergeCount: mergeCount}
 }
 
-
-function filterDataDict(dataDictObj, stateArr) {
+function filterDataDict(dataDictObj: DataDictObj, stateArr: Array<number | string>) {
 	return filterDataDict_(dataDictObj, stateArr, [], 0)
 }
 

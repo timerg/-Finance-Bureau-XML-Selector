@@ -1,3 +1,5 @@
+
+
 import React from 'react'
 
 
@@ -49,12 +51,16 @@ const Selections = ({ filterState, dataDictObj, onSelect, onSelectAll }) => {
 function getSelectSetArrFromDict_(stateArr, dataDictObj, selectionsSetArr, level) {
 	if(dataDictObj && level < 4) {
 		Object.keys(dataDictObj).map(o => {
-			selectionsSetArr[level].add(o)
+			if(o !== "sort") {
+				selectionsSetArr[level].add(o)
+			}
 		})
 
 		if(stateArr[level] === "不篩選") {
 			Object.keys(dataDictObj).map(k => {
-				selectionsSetArr = getSelectSetArrFromDict_(stateArr, dataDictObj[k], selectionsSetArr, level + 1)
+				if(k !== "sort") {
+					selectionsSetArr = getSelectSetArrFromDict_(stateArr, dataDictObj[k], selectionsSetArr, level + 1)
+				}
 			})
 		} else {
 			selectionsSetArr = getSelectSetArrFromDict_(stateArr, dataDictObj[stateArr[level]], selectionsSetArr, level + 1)

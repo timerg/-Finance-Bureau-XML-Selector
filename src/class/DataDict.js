@@ -3,7 +3,7 @@
 import _ from 'lodash'
 
 
-type FileJSONObj = {
+export type FileJSONObj = {
 	"年度號": {"$": number},
 	"分類號": {"$": number},
 	"案次號": {"$": number},
@@ -35,7 +35,7 @@ export type PathRecord = Array<string>
 
 export class DataDict {
 	obj: DataDictObj;
-	buildFromObjectArr: () => mixed;
+	buildFromObjectArr: (Array<FileJSONObj>) => mixed;
 
 	constructor(dataDictObj?: {} = {}) {
 		// this.obj = Object.create(dataDictObj)

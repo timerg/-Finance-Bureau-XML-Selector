@@ -3,12 +3,12 @@
 import React from 'react'
 
 type CounterDisplayerType = {
-	fileName: String,
+	fileName: string,
 	counter: {
-		all: Number,
-		mergeAll: Number,
-		display: Number,
-		mergeDisplay: Number
+		all: number,
+		mergeAll: number,
+		display: number,
+		mergeDisplay: number
 	},
 	trInfos: {}
 }

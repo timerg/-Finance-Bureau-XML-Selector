@@ -1,11 +1,16 @@
 
 
+import type { DF } from 'class/DataDict'
 
+export type FilterStateType = {
+	"年度號": string,
+	"分類號": string,
+	"案次號": string,
+	"卷次號": string,
+	toArray: (number) => Array<string>
+}
 
-class FilterState{
-
-
-
+export class FilterState {
 	constructor(obj: {} = {
 		"年度號": "不篩選",
 		"分類號": "不篩選",
@@ -35,7 +40,7 @@ class FilterState{
 		return arr.slice(0, numOfLevel)
 	}
 
-	setState(obj) {
+	setState(obj: {[string]: number | string}) {
 		// ex: this={96, 0202, 1, 003} obj={分類號: 0205}  => return {{96, 0205, 不篩選, 不篩選}}
 		let newState = (new FilterState(
 			Object.assign({
@@ -71,5 +76,3 @@ class FilterState{
 		})
 	}
 }
-
-export default FilterState

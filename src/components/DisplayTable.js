@@ -4,18 +4,15 @@ import { iterateDict } from '../class/DataDict'
 import type { DataDictObj, FileContent, PathRecord } from '../class/DataDict'
 import _ from 'lodash'
 
+import type { TrInfos } from 'components/App'
+
 type Props = {
 	dataDictObj: DataDictObj,
 	trInfos: TrInfos,
-	onCheck: () => void
+	onCheck: (SyntheticInputEvent<HTMLInputElement>) => void
 }
 
-type TrInfos = {
-	[number]: {
-		toShow: Boolean,
-		checked: Boolean
-	}
-}
+
 
 type TrInfoItem = {
 	fileObj: FileContent,
