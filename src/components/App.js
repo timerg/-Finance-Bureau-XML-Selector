@@ -2,6 +2,7 @@
 
 import React from 'react'
 import _ from 'lodash'
+import { Map, Set, Seq, List } from 'immutable'
 
 import CounterDisplayer from './Counter'
 import Selections from './Selections'
@@ -22,16 +23,18 @@ type Data = {
 }
 
 export type TrInfos = {
-	[number]: {
-		toShow: boolean,
-		checked: boolean
-	}
+	[string]: TrInfo
+}
+
+export type TrInfo = {
+	toShow: boolean,
+	checked: boolean
 }
 
 type Props = 	{}
 type State = {
 	filterState: FilterStateType,
-	trInfos: TrInfos,
+	trInfos: Map<string, TrInfo>,
 	counter: {
 		all: number,
 		mergeAll: number,
@@ -73,7 +76,7 @@ class App extends React.Component <Props, State>{
 			console.error(e)
 		}
 
-		let trInfos = {}
+		let trInfos: TrInfos = {}
 		let mergeCount = 0
 		iterateDict(this.dataDict.obj, (fileObj) => {
 			if(trInfos[fileObj["@num"]]) {
@@ -90,7 +93,7 @@ class App extends React.Component <Props, State>{
 
 		this.state = {
 			filterState: new FilterState(),
-			trInfos: trInfos,
+			trInfos: Map(trInfos),
 			counter: {
 				all: DATA.ROWSET.ROW.length,
 				mergeAll: mergeCount,
@@ -107,18 +110,62 @@ class App extends React.Component <Props, State>{
 
 		let newFilterState = this.state.filterState.setState(obj)
 
-		// hide everything
-		let newTrInfos = _.mapValues(this.state.trInfos, obj => ({ ...obj, toShow: false }));
-		this.setState({ trInfos: newTrInfos });
-
 		// show selected things
 		let filterResult = filterDataDict(this.dataDict.obj, newFilterState.toArray(4))
-		filterResult.array.map(key => {
-			this.setState(state => {
-				state.trInfos[key].toShow = true
-				return state
-			});
+
+		// // hide everything
+		// let newTrInfos = _.mapValues(this.state.trInfos, obj => ({ ...obj, toShow: false }));
+		// this.setState({ trInfos: newTrInfos });
+
+		// filterResult.array.map(key => {
+		// 	this.setState(state => {
+		// 		state.trInfos[key].toShow = true
+		// 		return state
+		// 	});
+		// })
+
+		const keysToUpdateSet = Set(filterResult.array)
+
+		const newTrInfosMap = this.state.trInfos.map((value, key) => {
+			if(keysToUpdateSet.has(key)) {
+				value.toShow = true
+			} else {
+				value.toShow = false
+			}
+			return value
 		})
+
+
+
+		// map<M>(mapper: (value: V, key: K, iter: this) => M, context?: any): Seq<K, M>
+		// V: TrInfo   K: number    M:
+		// const trInfosSeq: Seq.Keyed<string, TrInfo> = this.state.trInfos.toSeq()
+		//
+		// trInfosSeq.map((value:TrInfo, key:string) => {
+		// 	return {key: value}
+		// })
+		//
+		// const keysToUpdate = List(filterResult.array)
+		//
+		// const updatedValue = keysToUpdate.map(key => {
+		// 	let value = trInfosSeq.get(key);
+		// 	value.toShow = true
+		// 	return value
+		// 	})
+
+
+		// let newTrInfos = this.state.trInfos.map((value:TrInfo, key:string) => {
+		// 	return {key: value}
+		// })
+
+		// filterResult.array.map(k => {
+		// 	newTrInfos = newTrInfos.setIn([k, 'toShow'], true)
+		// })
+
+		this.setState({trInfos: newTrInfosMap})
+
+
+
 
 		this.setState(state => {
 			state.counter.display = filterResult.array.length
@@ -144,28 +191,30 @@ class App extends React.Component <Props, State>{
 	}
 
 	handleSelectAll(event: SyntheticInputEvent<HTMLInputElement>) {
-		let checked = event.target.checked
-		let newTrInfosState = {}
-		_.forOwn(this.state.trInfos, (value, key) => {
-			if(this.state.trInfos[key].toShow) {
-				newTrInfosState[key] = {toShow: true, checked: checked}
-			}
-
-		})
-		this.setState({trInfos: newTrInfosState})
+		// let checked = event.target.checked
+		// let newTrInfosState = {}
+		// _.forOwn(this.state.trInfos, (value, key) => {
+		// 	if(this.state.trInfos[key].toShow) {
+		// 		newTrInfosState[key] = {toShow: true, checked: checked}
+		// 	}
+		//
+		// })
+		// this.setState({trInfos: newTrInfosState})
 	}
 
 	render() {
 		return(<>
+			{/*
 			<ErrorPrompt errors={PARSEERROR}/>
 			<CounterDisplayer counter={this.state.counter} fileName={FILENAME} trInfos={this.state.trInfos}/>
-			<section className="contents">
-				<table className="table" id="displayTable">
-					<Selections filterState={this.state.filterState} dataDictObj={this.dataDict.obj} onSelect={this.handleSelect} onSelectAll={this.handleSelectAll}/>
-					<DisplayTable dataDictObj={this.dataDict.obj} trInfos={this.state.trInfos} onCheck={this.handleCheck}/>
-				</table>
-			</section>
 			<UserActions trInfos={this.state.trInfos} />
+		*/}
+		<section className="contents">
+			<table className="table" id="displayTable">
+			<Selections filterState={this.state.filterState} dataDictObj={this.dataDict.obj} onSelect={this.handleSelect} onSelectAll={this.handleSelectAll}/>
+			<DisplayTable dataDictObj={this.dataDict.obj} trInfos={this.state.trInfos} onCheck={this.handleCheck}/>
+			</table>
+		</section>
 		</>)
 	}
 }
@@ -187,7 +236,7 @@ function initDATA(): Data {
 	return DATA
 }
 
-function initDeleteList(DATA, deleteList=null): { [number]:boolean } {
+function initDeleteList(DATA, deleteList=null): { [string]:boolean } {
 	var deleteListObject = {}
 	//  initial deleteList
 	if(deleteList) {
@@ -206,56 +255,9 @@ function initDeleteList(DATA, deleteList=null): { [number]:boolean } {
 
 
 
-// function filterDataDict_(obj: DataDictObj, stateArr, resultArr: Array<number>, mergeCount) {
-// 	if(stateArr.length === 0) {
-// 		_.forOwn(obj, (value, key) => {
-// 			if(key !== "sort") {
-// 				// 主併文
-// 				if(obj[key].sort === "DataDict") {
-// 					_.forOwn(obj[key], (value, key2) => {
-// 						if(key2 !== "sort") {
-// 							// if(obj[key][key2].sort === "FileContent") {
-// 								resultArr.push(obj[key][key2]["@num"])
-// 								if(obj[key][key2].isMerge) {
-// 									mergeCount++
-// 								}
-// 							// } else {
-// 							// 	console.error("programming error. DataDictObj seems to be too deep")
-// 							}
-// 						// }
-// 					})
-// 				} else {
-// 					resultArr.push(obj[key]["@num"])
-// 					if(obj[key].isMerge) {
-// 						mergeCount++
-// 					}
-// 				}
-// 			}
-// 		})
-// 	} else {
-// 		if(stateArr[0] === "不篩選") {
-// 			Object.keys(obj).map(key => {
-// 				if(key !== "sort") {
-// 					let filterResult = filterDataDict_(obj[key], stateArr.slice(1, stateArr.length), [], mergeCount)
-// 					resultArr = resultArr.concat(filterResult.array)
-// 					mergeCount = filterResult.mergeCount
-// 				}
-// 			})
-// 		} else {
-// 			if(obj[stateArr[0]]) {
-// 				let filterResult = filterDataDict_(obj[stateArr[0]], stateArr.slice(1, stateArr.length), [], mergeCount)
-// 				resultArr = resultArr.concat(filterResult.array)
-// 				mergeCount = filterResult.mergeCount
-//
-// 			}
-// 		}
-// 	}
-// 	console.log(resultArr)
-// 	return {array: resultArr, mergeCount: mergeCount}
-// }
 
 
-function filterDataDict_ (obj: DataDictObj, stateArr: Array<number | string>, resultArr: Array<number>, mergeCount: number) {
+function filterDataDict_ (obj: DataDictObj, stateArr: Array<string>, resultArr: Array<string>, mergeCount: number) {
 	if(stateArr.length === 0) {
 		iterateDict(obj, (obj) => {
 			resultArr.push(obj["@num"])
@@ -287,7 +289,7 @@ function filterDataDict_ (obj: DataDictObj, stateArr: Array<number | string>, re
 	return {array: resultArr, mergeCount: mergeCount}
 }
 
-function filterDataDict(dataDictObj: DataDictObj, stateArr: Array<number | string>) {
+function filterDataDict(dataDictObj: DataDictObj, stateArr: Array<string>): {array: Array<string>, mergeCount: number} {
 	return filterDataDict_(dataDictObj, stateArr, [], 0)
 }
 

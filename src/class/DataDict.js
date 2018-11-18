@@ -4,12 +4,12 @@ import _ from 'lodash'
 
 
 export type FileJSONObj = {
-	"年度號": {"$": number},
-	"分類號": {"$": number},
-	"案次號": {"$": number},
-	"卷次號": {"$": number},
-	"目次號": {"$": number},
-	"@num": number,
+	"年度號": {"$": string},
+	"分類號": {"$": string},
+	"案次號": {"$": string},
+	"卷次號": {"$": string},
+	"目次號": {"$": string},
+	"@num": string,
 	"案由": {"$": string},
 	"有無併件"?: {"$": string},
 	"主併檔號"?: {"$": string},
@@ -23,7 +23,7 @@ export type DataDictObj = {
 
 export type FileContent = {
 	sort: "FileContent",
-	"@num": number,
+	"@num": string,
 	"案由": string,
 	isMerge?: boolean
 }
@@ -54,10 +54,10 @@ export class DataDict {
 		    keysToBeRemoved.map(key => {
 		        delete arr[i][key]
 		    })
-		    let year = thisFile["年度號"]["$"]
-		    let kind = thisFile["分類號"]["$"]
-		    let cas_ = thisFile["案次號"]["$"]
-		    let volm = thisFile["卷次號"]["$"]
+		    let year = thisFile["年度號"]["$"].toString()
+		    let kind = thisFile["分類號"]["$"].toString()
+		    let cas_ = thisFile["案次號"]["$"].toString()
+		    let volm = thisFile["卷次號"]["$"].toString()
 			if(!this.obj[year]) {
 				this.obj[year] = {sort: "DataDictObj"}
 			}
@@ -73,14 +73,14 @@ export class DataDict {
 
 			let fileContent: FileContent = {
 				sort: "FileContent",
-				"@num": thisFile["@num"],
+				"@num": thisFile["@num"].toString(),
 				"案由": thisFile["案由"]["$"],
 			}
 			let hasMerge = thisFile["有無併件"]
 			let toMerge = thisFile["主併檔號"]
 
 			if(hasMerge) {
-				let file = thisFile["目次號"]["$"]
+				let file = thisFile["目次號"]["$"].toString()
 				this.obj[year][kind][cas_][volm][file] = {
 					sort: "DataDictObj",
 					"主文": fileContent,
@@ -91,7 +91,7 @@ export class DataDict {
 				this.obj[year][kind][cas_][volm][lastFile]["併文" + mergeFileCount.toString()] = fileContent
 				mergeFileCount = mergeFileCount + 1
 			} else {
-				let file = thisFile["目次號"]["$"]
+				let file = thisFile["目次號"]["$"].toString()
 				this.obj[year][kind][cas_][volm][file] = fileContent
 			}
 		}

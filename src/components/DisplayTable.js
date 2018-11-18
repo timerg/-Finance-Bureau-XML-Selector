@@ -3,12 +3,13 @@ import React from 'react'
 import { iterateDict } from '../class/DataDict'
 import type { DataDictObj, FileContent, PathRecord } from '../class/DataDict'
 import _ from 'lodash'
+import { Map } from 'immutable'
 
-import type { TrInfos } from 'components/App'
+import type { TrInfo } from 'components/App'
 
 type Props = {
 	dataDictObj: DataDictObj,
-	trInfos: TrInfos,
+	trInfos: Map<string, TrInfo>,
 	onCheck: (SyntheticInputEvent<HTMLInputElement>) => void
 }
 
@@ -35,28 +36,25 @@ class DisplayTable extends React.Component <Props>{
 		})
 	}
 
-	// static getDerivedStateFromProps(props, state) {
-	// 	let newState = {}
-	// 	iterateDict(props.dataDictObj, (fileObj) => {
-	// 		_.set(newState, `${fileObj["@num"]}.toShow`, fileObj.toShow)
-	// 		_.set(newState, `${fileObj["@num"]}.checked`, props.deleteListObj[fileObj["@num"]])
-	// 	})
-	// 	return {trs: newState}
-	// }
 
 	render() {
 		return (
 			<tbody>{
 				this.trInfosArray.map(trInfoItem =>{
-					let num = trInfoItem.fileObj["@num"]
-					return <MyTr
+					let num: string = trInfoItem.fileObj["@num"]
+					const trInfo = this.props.trInfos.get(num)
+					if(trInfo === undefined) {
+						console.error("programming error on key:", num)
+					} else {
+						return <MyTr
 						key={num}
 						fileObj={trInfoItem.fileObj}
 						pathRecord={trInfoItem.pathRecord}
-						toShow={this.props.trInfos[num].toShow}
-						checked={this.props.trInfos[num].checked}
+						toShow={trInfo.toShow}
+						checked={trInfo.checked}
 						func={this.props.onCheck}
-					/>
+						/>
+					}
 				})
 			}
 			</tbody>
