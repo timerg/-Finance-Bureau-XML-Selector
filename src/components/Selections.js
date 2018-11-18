@@ -3,14 +3,14 @@
 import React from 'react'
 
 
-const Selections = ({ filterState, dataDictObj, onSelect, onSelectAll }) => {
+const Selections = ({ filterState, dataDictObj, onSelect, onCheckAll }) => {
 	let stateArr = filterState.toArray(4)
 	let selectionsSetArr = getSelectSetArrFromDict(stateArr, dataDictObj)
 	return <thead>
           <tr>
             <th style={{"width": "5%"}}>
               刪除
-			  <input type="checkBox" id="select-all" onChange={onSelectAll}/>
+			  <input type="checkBox" id="select-all" onChange={onCheckAll}/>
             </th>
             <th className="selection" style={{"width": "13%"}}>
               年度

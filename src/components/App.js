@@ -55,7 +55,7 @@ class App extends React.Component <Props, State>{
 	dataDict: {obj: DataDictObj};
 	handleSelect: ({ [string]: number | string }) => void;
 	handleCheck: ( SyntheticInputEvent<HTMLInputElement> ) => void;
-	handleSelectAll: ( SyntheticInputEvent<HTMLInputElement> ) => void;
+	handleCheckAll: ( SyntheticInputEvent<HTMLInputElement> ) => void;
 
 
 	constructor() {
@@ -64,7 +64,7 @@ class App extends React.Component <Props, State>{
 
 		this.handleSelect = this.handleSelect.bind(this)
 		this.handleCheck = this.handleCheck.bind(this)
-		this.handleSelectAll = this.handleSelectAll.bind(this)
+		this.handleCheckAll = this.handleCheckAll.bind(this)
 
 		let DATA: Data = initDATA()
 
@@ -157,7 +157,7 @@ class App extends React.Component <Props, State>{
 		this.setState({trInfos})
 	}
 
-	handleSelectAll(event: SyntheticInputEvent<HTMLInputElement>) {
+	handleCheckAll(event: SyntheticInputEvent<HTMLInputElement>) {
 		const trInfos = this.state.trInfos.map((trInfo, key) => {
 			let newTrInfo = trInfo
 			if(trInfo.get('toShow') === true) {
@@ -180,7 +180,7 @@ class App extends React.Component <Props, State>{
 		*/}
 		<section className="contents">
 			<table className="table" id="displayTable">
-			<Selections filterState={this.state.filterState} dataDictObj={this.dataDict.obj} onSelect={this.handleSelect} onSelectAll={this.handleSelectAll}/>
+			<Selections filterState={this.state.filterState} dataDictObj={this.dataDict.obj} onSelect={this.handleSelect} onCheckAll={this.handleCheckAll}/>
 			<DisplayTable dataDictObj={this.dataDict.obj} trInfos={this.state.trInfos} onCheck={this.handleCheck}/>
 			</table>
 		</section>
