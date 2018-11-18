@@ -246,13 +246,15 @@ function filterDataDict_ (obj: DataDictObj, stateArr: Array<string>, resultArr: 
 					}
 			})
 		} else {
-			if(obj[stateArr[0]] && obj[stateArr[0]].sort === "DataDictObj") {
-				let filterResult = filterDataDict_(obj[stateArr[0]], stateArr.slice(1, stateArr.length), [], mergeCount)
-				resultArr = resultArr.concat(filterResult.array)
-				mergeCount = filterResult.mergeCount
-			} else {
-				console.error("programming error")
-			}
+			if(obj[stateArr[0]]) {
+				if(obj[stateArr[0]].sort === "DataDictObj") {
+					let filterResult = filterDataDict_(obj[stateArr[0]], stateArr.slice(1, stateArr.length), [], mergeCount)
+					resultArr = resultArr.concat(filterResult.array)
+					mergeCount = filterResult.mergeCount
+					} else {
+						console.error("Type Error: Programming Error")
+					}
+				}
 		}
 	}
 	return {array: resultArr, mergeCount: mergeCount}
