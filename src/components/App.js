@@ -2,7 +2,8 @@
 
 import React from 'react'
 import _ from 'lodash'
-import { Map, Set, Seq, List } from 'immutable'
+import { Map, Set, Seq, Record } from 'immutable'
+import type { RecordFactory, RecordOf } from 'immutable';
 
 import CounterDisplayer from './Counter'
 import Selections from './Selections'
@@ -26,10 +27,17 @@ export type TrInfos = {
 	[string]: TrInfo
 }
 
-export type TrInfo = {
+type TrInfoProps = {
 	toShow: boolean,
 	checked: boolean
 }
+
+export type TrInfo = RecordOf<TrInfoProps>;
+
+const TrInfoRecord = Record({
+	toShow: true,
+	checked: false
+})
 
 type Props = 	{}
 type State = {
@@ -82,10 +90,10 @@ class App extends React.Component <Props, State>{
 			if(trInfos[fileObj["@num"]]) {
 				console.error("Repeated num") // this shouldn't be called since server has survayed and fixed the num
 			}
-			trInfos[fileObj["@num"]] = {
-				toShow: true,
+			trInfos[fileObj["@num"]] = TrInfoRecord({
+				// toShow: true,
 				checked: deleteListObject[fileObj["@num"]]
-			}
+			})
 			if(fileObj.isMerge) {
 				mergeCount++
 			}
@@ -113,54 +121,17 @@ class App extends React.Component <Props, State>{
 		// show selected things
 		let filterResult = filterDataDict(this.dataDict.obj, newFilterState.toArray(4))
 
-		// // hide everything
-		// let newTrInfos = _.mapValues(this.state.trInfos, obj => ({ ...obj, toShow: false }));
-		// this.setState({ trInfos: newTrInfos });
-
-		// filterResult.array.map(key => {
-		// 	this.setState(state => {
-		// 		state.trInfos[key].toShow = true
-		// 		return state
-		// 	});
-		// })
-
 		const keysToUpdateSet = Set(filterResult.array)
 
-		const newTrInfosMap = this.state.trInfos.map((value, key) => {
+		const newTrInfosMap = this.state.trInfos.map((trInfo, key) => {
+			let newTrInfo
 			if(keysToUpdateSet.has(key)) {
-				value.toShow = true
+				newTrInfo = trInfo.set('toShow', true)
 			} else {
-				value.toShow = false
+				newTrInfo = trInfo.set('toShow', false)
 			}
-			return value
+			return newTrInfo
 		})
-
-
-
-		// map<M>(mapper: (value: V, key: K, iter: this) => M, context?: any): Seq<K, M>
-		// V: TrInfo   K: number    M:
-		// const trInfosSeq: Seq.Keyed<string, TrInfo> = this.state.trInfos.toSeq()
-		//
-		// trInfosSeq.map((value:TrInfo, key:string) => {
-		// 	return {key: value}
-		// })
-		//
-		// const keysToUpdate = List(filterResult.array)
-		//
-		// const updatedValue = keysToUpdate.map(key => {
-		// 	let value = trInfosSeq.get(key);
-		// 	value.toShow = true
-		// 	return value
-		// 	})
-
-
-		// let newTrInfos = this.state.trInfos.map((value:TrInfo, key:string) => {
-		// 	return {key: value}
-		// })
-
-		// filterResult.array.map(k => {
-		// 	newTrInfos = newTrInfos.setIn([k, 'toShow'], true)
-		// })
 
 		this.setState({trInfos: newTrInfosMap})
 
@@ -183,11 +154,9 @@ class App extends React.Component <Props, State>{
 	// when a tr is checked, update deleteListObject
 	handleCheck(event: SyntheticInputEvent<HTMLInputElement>) {
 		let t = event.target
-		let newTrInfosState = {}
-		_.setWith(newTrInfosState, `${t.value}.checked`, event.target.checked, Object)
-		let trInfos = this.state.trInfos
-		_.merge(trInfos, newTrInfosState)
-		this.setState({trInfos: trInfos})
+		// const trInfos = this.state.trInfos.setIn([t.value, 'checked'], event.target.checked)
+		const trInfos = this.state.trInfos.update(t.value, trInfo => trInfo.set('checked', event.target.checked))
+		this.setState({trInfos})
 	}
 
 	handleSelectAll(event: SyntheticInputEvent<HTMLInputElement>) {

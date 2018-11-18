@@ -26,6 +26,7 @@ class DisplayTable extends React.Component <Props>{
 	constructor(props: Props) {
 		super(props)
 
+		// save all files info to a row of
 		this.trInfosArray = []
 		iterateDict(props.dataDictObj, (fileObj, pathRecord) => {
 			let trInfoItem: TrInfoItem = {
@@ -50,8 +51,7 @@ class DisplayTable extends React.Component <Props>{
 						key={num}
 						fileObj={trInfoItem.fileObj}
 						pathRecord={trInfoItem.pathRecord}
-						toShow={trInfo.toShow}
-						checked={trInfo.checked}
+						trInfo={trInfo}
 						func={this.props.onCheck}
 						/>
 					}
@@ -62,21 +62,41 @@ class DisplayTable extends React.Component <Props>{
 	}
 }
 
-const MyTr = ({fileObj, pathRecord, func, toShow, checked}) => {
-	return <tr
-		className={`${(fileObj.isMerge) ? 'mergeFile' : ''} ${(toShow) ? '' : 'myHiddenTr'}`}
-		>
-		<td> <input className='deleteCheck' checked={checked} name="toDelete" type="checkBox" value={fileObj["@num"]} onChange={func} /></td>
-		<td>{pathRecord[0]}</td>
-		<td>{pathRecord[1]}</td>
-		<td>{pathRecord[2]}</td>
-		<td>{pathRecord[3]}</td>
-		<td>{pathRecord[4]}</td>
-		<td>{fileObj["案由"]}</td>
-	</tr>
+
+type MyTrProps = {
+	fileObj: FileContent,
+	pathRecord: PathRecord,
+	trInfo: TrInfo,
+	func: (SyntheticInputEvent<HTMLInputElement>) => void
 }
 
 
+class MyTr extends React.Component<MyTrProps> {
+	constructor(props) {
+		super(props)
+	}
+
+	shouldComponentUpdate(nextProps) {
+		if(this.props.trInfo.equals(nextProps.trInfo)){
+			return false
+		}
+		return true
+	}
+
+	render() {
+		return <tr
+			className={`${(this.props.fileObj.isMerge) ? 'mergeFile' : ''} ${(this.props.trInfo.toShow) ? '' : 'myHiddenTr'}`}
+			>
+			<td> <input className='deleteCheck' checked={this.props.trInfo.checked} name="toDelete" type="checkBox" value={this.props.fileObj["@num"]} onChange={this.props.func} /></td>
+			<td>{this.props.pathRecord[0]}</td>
+			<td>{this.props.pathRecord[1]}</td>
+			<td>{this.props.pathRecord[2]}</td>
+			<td>{this.props.pathRecord[3]}</td>
+			<td>{this.props.pathRecord[4]}</td>
+			<td>{this.props.fileObj["案由"]}</td>
+		</tr>
+	}
+}
 
 
 
