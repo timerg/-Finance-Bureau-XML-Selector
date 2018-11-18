@@ -1,6 +1,9 @@
 // @flow
 
 import React from 'react'
+import { Map } from 'immutable'
+
+import type { TrInfo } from 'components/App'
 
 type CounterDisplayerType = {
 	fileName: string,
@@ -10,17 +13,17 @@ type CounterDisplayerType = {
 		display: number,
 		mergeDisplay: number
 	},
-	trInfos: {}
+	trInfos: Map<string, TrInfo>
 }
 
 
 const CounterDisplayer = ({ fileName, counter, trInfos }: CounterDisplayerType) => {
 	let checkedCounterAll = 0
 	let checkedCounterDisplayed = 0
-	Object.keys(trInfos).map((key) => {
-		if(trInfos[key].checked) {
+	trInfos.map(( trInfo, key) => {
+		if(trInfo.get('checked')) {
 			checkedCounterAll++
-			if(trInfos[key].toShow) {
+			if(trInfo.get('toShow')) {
 				checkedCounterDisplayed++
 			}
 		}

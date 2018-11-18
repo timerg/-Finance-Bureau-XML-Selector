@@ -174,9 +174,9 @@ class App extends React.Component <Props, State>{
 	render() {
 		return(<>
 			{/*
-			<ErrorPrompt errors={PARSEERROR}/>
-			<CounterDisplayer counter={this.state.counter} fileName={FILENAME} trInfos={this.state.trInfos}/>
 		*/}
+		<ErrorPrompt errors={PARSEERROR}/>
+		<CounterDisplayer counter={this.state.counter} fileName={FILENAME} trInfos={this.state.trInfos}/>
 		<section className="contents">
 			<table className="table" id="displayTable">
 			<Selections filterState={this.state.filterState} dataDictObj={this.dataDict.obj} onSelect={this.handleSelect} onCheckAll={this.handleCheckAll}/>
