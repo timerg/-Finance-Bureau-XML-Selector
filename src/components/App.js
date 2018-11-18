@@ -176,7 +176,6 @@ class App extends React.Component <Props, State>{
 			{/*
 			<ErrorPrompt errors={PARSEERROR}/>
 			<CounterDisplayer counter={this.state.counter} fileName={FILENAME} trInfos={this.state.trInfos}/>
-			<UserActions trInfos={this.state.trInfos} />
 		*/}
 		<section className="contents">
 			<table className="table" id="displayTable">
@@ -184,6 +183,7 @@ class App extends React.Component <Props, State>{
 			<DisplayTable dataDictObj={this.dataDict.obj} trInfos={this.state.trInfos} onCheck={this.handleCheck}/>
 			</table>
 		</section>
+		<UserActions trInfos={this.state.trInfos} />
 		</>)
 	}
 }

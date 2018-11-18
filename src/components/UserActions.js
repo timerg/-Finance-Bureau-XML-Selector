@@ -1,13 +1,22 @@
+// @flow
+
 import React from 'react'
+import { Map } from 'immutable'
+import type { TrInfo } from './App'
 
 
 
-
-
-function myFetch(path, csrf, timeout, data, resolveCB){
+function myFetch(path: string, csrf: string, timeout: number, data: any, resolveCB: (res: Response) => any){
     return () => {
         let timeoutPromise = new Promise((resolve, reject) => {
-            setTimeout(resolve, timeout, () => window.alert('Request timeout! Please contact the server manager!'));
+          const myBlob = new Blob()
+          const resInit = {
+            "status": 503,
+            "statusText": 'Request timeout! Please contact the server manager!',
+            "ok": false
+          }
+          let timeoutResponse = new Response(myBlob, resInit)
+          setTimeout(resolve, timeout, timeoutResponse);
         })
         let bodyData = data ? JSON.stringify(data) : null
         let fetchPromise = new Promise((resolve, reject) => {
@@ -49,7 +58,7 @@ function myFetch(path, csrf, timeout, data, resolveCB){
     }
 }
 
-function redirect(response) {
+function redirect(response: Response) {
     console.log(response);
     if(response.ok) {
         if(response.redirected) {
@@ -61,19 +70,46 @@ function redirect(response) {
     }
 }
 
-const UserActions = ({ trInfos }) => {
-    let csrf = document.getElementById('csrf-token').getElementsByTagName('input')[0].value
-    let deleteList = Object.keys(trInfos).map(key => ({num: key, toDelete: trInfos[key].checked}))
+type Props = {
+    trInfos: Map<string, TrInfo>
+}
+
+type deleteListItem = {
+  num: string,
+  toDelete: boolean
+}
+
+function createDeleteList(trInfos): Array<deleteListItem> {
+  return trInfos.map((trInfo, key) =>
+    ({ num: key, toDelete: trInfo.get('checked') })
+  ).toList().toArray()
+
+}
+
+const UserActions = ({ trInfos }: Props) => {
+    const csrfNode = document.getElementById('csrf-token')
+    let csrf: string = ''
+    if(csrfNode){
+      csrf = csrfNode.getElementsByTagName('input')[0].value
+    } else {
+      console.error("no csrf token")
+    }
     return (
         <div>
             <button type="button" id="submitButton" onClick={
                 myFetch('submit/',
                 csrf,
                 8000,
-                deleteList,
+                createDeleteList(trInfos),
                 (res) => {
                     res.blob().then((blob) => {
-                        let fname = document.getElementById('file-name').innerHTML
+                        let fnameNode = document.getElementById('file-name')
+                        let fname = ''
+                        if(fnameNode) {
+                          fname = fnameNode.innerHTML
+                        } else {
+                          console.error("no file name")
+                        }
             			download(blob, fname.slice(1, fname.length - 1))
                     })
                 })
@@ -82,7 +118,7 @@ const UserActions = ({ trInfos }) => {
                 myFetch('save/',
                 csrf,
                 4000,
-                deleteList,
+                createDeleteList(trInfos),
                 () => window.alert("清單已儲存"))
             }>將勾選清單暫存</button>
             <button type="button" id="deleteButton" onClick={
