@@ -153,22 +153,22 @@ class App extends React.Component <Props, State>{
 
 	// when a tr is checked, update deleteListObject
 	handleCheck(event: SyntheticInputEvent<HTMLInputElement>) {
-		let t = event.target
-		// const trInfos = this.state.trInfos.setIn([t.value, 'checked'], event.target.checked)
-		const trInfos = this.state.trInfos.update(t.value, trInfo => trInfo.set('checked', event.target.checked))
+		const trInfos = this.state.trInfos.update(event.target.value, trInfo => trInfo.set('checked', event.target.checked))
 		this.setState({trInfos})
 	}
 
 	handleSelectAll(event: SyntheticInputEvent<HTMLInputElement>) {
-		// let checked = event.target.checked
-		// let newTrInfosState = {}
-		// _.forOwn(this.state.trInfos, (value, key) => {
-		// 	if(this.state.trInfos[key].toShow) {
-		// 		newTrInfosState[key] = {toShow: true, checked: checked}
-		// 	}
-		//
-		// })
-		// this.setState({trInfos: newTrInfosState})
+		const trInfos = this.state.trInfos.map((trInfo, key) => {
+			let newTrInfo = trInfo
+			if(trInfo.get('toShow') === true) {
+				newTrInfo = trInfo.set('checked', event.target.checked)
+				if(!newTrInfo) {
+					console.error("programming error")
+				}
+			}
+			return newTrInfo
+		})
+		this.setState({trInfos})
 	}
 
 	render() {
