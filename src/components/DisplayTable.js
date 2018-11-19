@@ -71,17 +71,11 @@ type MyTrProps = {
 }
 
 
-class MyTr extends React.Component<MyTrProps> {
+class MyTr extends React.PureComponent<MyTrProps> {
 	constructor(props) {
 		super(props)
 	}
 
-	shouldComponentUpdate(nextProps) {
-		if(this.props.trInfo.equals(nextProps.trInfo)){
-			return false
-		}
-		return true
-	}
 
 	render() {
 		return <tr
@@ -97,8 +91,6 @@ class MyTr extends React.Component<MyTrProps> {
 		</tr>
 	}
 }
-
-
 
 
 
