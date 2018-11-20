@@ -18,7 +18,7 @@ export type FileJSONObj = {
 
 export type DataDictObj = {
 	sort: "DataDictObj",
-	[number | string]: DF
+	[string]: DF
 }
 
 export type FileContent = {
@@ -46,7 +46,7 @@ export class DataDict {
 
 	buildFromObjectArr(arr: Array<FileJSONObj>) {
 		// 解決併文無檔號之問題
-		let lastFile = 0;			// 若 DataDict 的目次號中出現 0，代表有沒有主文的併文
+		let lastFile = '0';			// 若 DataDict 的目次號中出現 0，代表有沒有主文的併文
 		let mergeFileCount = 1
 		for (var i = 0; i < arr.length; i++) {
 		    let thisFile = arr[i]
@@ -88,8 +88,12 @@ export class DataDict {
 				lastFile = file
 			} else if(toMerge){
 				fileContent.isMerge = true
-				this.obj[year][kind][cas_][volm][lastFile]["併文" + mergeFileCount.toString()] = fileContent
-				mergeFileCount = mergeFileCount + 1
+				if(lastFile === '0') {
+					console.error("Data error: a 併文 file doesn't have 主文")
+				} else {
+					this.obj[year][kind][cas_][volm][lastFile]["併文" + mergeFileCount.toString()] = fileContent
+					mergeFileCount = mergeFileCount + 1
+				}
 			} else {
 				let file = thisFile["目次號"]["$"].toString()
 				this.obj[year][kind][cas_][volm][file] = fileContent
