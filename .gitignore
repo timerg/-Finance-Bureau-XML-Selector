@@ -10,4 +10,4 @@ node_modules
 webpack-stats.json
 init.js
 bundles/
-
+ignored
