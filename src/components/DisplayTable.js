@@ -1,14 +1,14 @@
 // @flow
 import React from 'react'
-import { iterateDict } from '../class/DataDict'
-import type { DataDictObj, FileContent, PathRecord } from '../class/DataDict'
+import { iterateMap } from '../class/DataDict'
+import type { DataDictMap, FileContent, PathRecord } from '../class/DataDict'
 import _ from 'lodash'
 import { Map } from 'immutable'
 
 import type { TrInfo } from 'components/App'
 
 type Props = {
-	dataDictObj: DataDictObj,
+	dataDictObj: DataDictMap,
 	trInfos: Map<string, TrInfo>,
 	onCheck: (SyntheticInputEvent<HTMLInputElement>) => void
 }
@@ -28,7 +28,7 @@ class DisplayTable extends React.Component <Props>{
 
 		// save all files info to a row of
 		this.trInfosArray = []
-		iterateDict(props.dataDictObj, (fileObj, pathRecord) => {
+		iterateMap(props.dataDictObj, (fileObj, pathRecord) => {
 			let trInfoItem: TrInfoItem = {
 				fileObj: fileObj,
 				pathRecord: pathRecord,
