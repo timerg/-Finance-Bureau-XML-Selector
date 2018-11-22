@@ -13,8 +13,8 @@ import ErrorPrompt from './ErrorPrompt'
 // Class
 import { CreateDataDictMap, iterateMap} from 'class/DataDict'
 import type { FileJSONObj, FileContent, DF, DataDictMap } from 'class/DataDict'
-import { FilterState } from 'class/FilterState'
-import type { FilterStateType } from 'class/FilterState'
+import { initStatesFromDataDict as initFilterStatesFromDataDict, setState as setFilterState } from 'class/FilterState'
+import type { StatesType as FilterStateType } from 'class/FilterState'
 // import './lib/api.js'
 
 type Data = {
@@ -98,7 +98,7 @@ class App extends React.Component <Props, State>{
 		})
 
 		this.state = {
-			filterState: new FilterState(),
+			filterState: initFilterStatesFromDataDict(this.dataDict),
 			trInfos: Map(trInfos),
 			counter: {
 				all: DATA.ROWSET.ROW.length,
@@ -172,7 +172,7 @@ class App extends React.Component <Props, State>{
 	render() {
 		return(<>
 			{/*
-				<Selections filterState={this.state.filterState} dataDictObj={this.dataDict.obj} onSelect={this.handleSelect} onCheckAll={this.handleCheckAll}/>
+				<Selections filterState={this.state.filterState} dataDictMap={this.dataDict.obj} onSelect={this.handleSelect} onCheckAll={this.handleCheckAll}/>
 		*/}
 		<ErrorPrompt errors={PARSEERROR}/>
 		<CounterDisplayer counter={this.state.counter} fileName={FILENAME} trInfos={this.state.trInfos}/>

@@ -1,128 +1,22 @@
+// @flow
 
-
-import { Record, Set, List, Map, fromJS } from 'immutable'
+import { Record, Set, List, Map, fromJS, isRecord } from 'immutable'
 import type { RecordFactory, RecordOf } from 'immutable';
-import type { DataDictObj, DF } from 'class/DataDict'
+import type { DataDictMap, DF } from 'class/DataDict'
 
-export type FilterStateType = {
-	"年度號": string,
-	"分類號": string,
-	"案次號": string,
-	"卷次號": string,
-	toArray: (number) => Array<string>
-}
-
-export class FilterState {
-	constructor(obj: {} = {
-		"年度號": "不篩選",
-		"分類號": "不篩選",
-		"案次號": "不篩選",
-		"卷次號": "不篩選"
-    }) {
-        this["年度號"] = obj["年度號"]
-        this["分類號"] = obj["分類號"]
-        this["案次號"] = obj["案次號"]
-        this["卷次號"] = obj["卷次號"]
-
-		this.toArray = this.toArray.bind(this)
-		Object.freeze(this)
-
-	}
-
-	print() {
-		return "|年度號: " + this["年度號"] + ", 分類號: " + this["分類號"] + ", 案次號: " + this["案次號"] + ", 卷次號: " + this["卷次號"]
-	}
-
-	toArray(numOfLevel: number) {
-		if(numOfLevel > 4) {
-			console.error("FilterState level out of range. It should be no more than 4")
-			return []
-		}
-		let arr = [this["年度號"], this["分類號"], this["案次號"], this["卷次號"]]
-		return arr.slice(0, numOfLevel)
-	}
-
-	setState(obj: {[string]: number | string}) {
-		// ex: this={96, 0202, 1, 003} obj={分類號: 0205}  => return {{96, 0205, 不篩選, 不篩選}}
-		let newState = (new FilterState(
-			Object.assign({
-				"年度號": null,
-				"分類號": null,
-				"案次號": null,
-				"卷次號": null
-			}, obj))).toArray(4)
-		let stateArr = this.toArray(4)
-		let state = null
-		for(var i = 0; i < 4; i++) {
-			if(newState[i]) {
-				if(newState[i] != "不篩選") {
-					// the filter after this one should become "不篩選"
-					state = "不篩選"
-				}
-			} else {
-				if(!state) {
-					newState[i] = stateArr[i]
-				} else {
-					newState[i] = state
-				}
-			}
-
-		}
-
-
-		return new FilterState({
-			"年度號": newState[0],
-			"分類號": newState[1],
-			"案次號": newState[2],
-			"卷次號": newState[3]
-		})
-	}
-}
-
-
-
-function getStatesArrFromDict_(stateArr, dataDictObj, selectionsSetArr, level) {
-	if(dataDictObj && level < 4) {
-		Object.keys(dataDictObj).map(o => {
-			if(o !== "sort") {
-				selectionsSetArr[level].add(o)
-			}
-		})
-
-		if(stateArr[level] === "不篩選") {
-			Object.keys(dataDictObj).map(k => {
-				if(k !== "sort") {
-					selectionsSetArr = getSelectSetArrFromDict_(stateArr, dataDictObj[k], selectionsSetArr, level + 1)
-				}
-			})
-		} else {
-			selectionsSetArr = getSelectSetArrFromDict_(stateArr, dataDictObj[stateArr[level]], selectionsSetArr, level + 1)
-		}
-	}
-	return selectionsSetArr
-}
-
-function getSelectSetArrFromDict(stateArr, dataDictObj) {
-	let selectionsSetArr = [new Set(["不篩選"]), new Set(["不篩選"]), new Set(["不篩選"]), new Set(["不篩選"])]
-	return getSelectSetArrFromDict_(stateArr, dataDictObj, selectionsSetArr, 0)
-}
-
-
-
-
-// ==============
-
-type KeysSet = Set<string>
+type KeySet = Set<string>
 
 type StateObj = {
 	currentState: string,
-	keySet: KeysSet
+	keySet: KeySet,
+	listOfMaps: List<DataDictMap>
 }
 
 
 const defaultState: StateObj = {
 	currentState: "不篩選",
-	keySet: Set([])
+	keySet: Set([]),
+	listOfMaps: List([])
 }
 
 const CreateState: RecordFactory<StateObj> = Record(defaultState)
@@ -130,14 +24,14 @@ const CreateState: RecordFactory<StateObj> = Record(defaultState)
 type StatesObj = {
 	year: RecordOf<StateObj>,
 	kind: RecordOf<StateObj>,
-	case: RecordOf<StateObj>,
+	cas_: RecordOf<StateObj>,
 	volm: RecordOf<StateObj>
 }
 
 const defaultStates: StatesObj = {
 	year: CreateState(defaultState),
 	kind: CreateState(defaultState),
-	case: CreateState(defaultState),
+	cas_: CreateState(defaultState),
 	volm: CreateState(defaultState)
 }
 
@@ -154,7 +48,7 @@ export type StatesType = RecordOf<StatesObj>
 //		currentState: "不篩選",
 //		keySet: Set([])
 //  },
-// 	case: {
+// 	cas_: {
 //		currentState: "不篩選",
 //		keySet: Set([])
 //  },
@@ -164,55 +58,95 @@ export type StatesType = RecordOf<StatesObj>
 //  },
 // }
 
-function dfToMap(obj: DF): Map<string, DataDictObj> {
-	if (obj.sort === "DataDictObj") {
-		let tempMap = Map();
-		Object.keys(obj).forEach(key => {
-			if (key !== "sort") {
-				if(obj[key].sort === "DataDictObj") {
-					tempMap.set(key, obj[key]);
-				}
-			}
-		});
-		return tempMap;
-	} else {
-		return Map();
-	}
+
+export function initStatesFromDataDict(dataDictMap: DataDictMap): StatesType {
+	const year = statesChainUpdater(List([dataDictMap]))
+	const kind = statesChainUpdater(year.listOfMap)
+	const cas_ = statesChainUpdater(kind.listOfMap)
+	const volm = statesChainUpdater(cas_.listOfMap)
+
+	return CreateStates({
+		year: CreateState({
+			currentState: "不篩選",
+			keySet: year.keys,
+			listOfMaps: year.listOfMap
+		}),
+		kind: CreateState({
+			currentState: "不篩選",
+			keySet: kind.keys,
+			listOfMaps: kind.listOfMap
+		}),
+		cas_: CreateState({
+			currentState: "不篩選",
+			keySet: cas_.keys,
+			listOfMaps: cas_.listOfMap
+		}),
+		volm: CreateState({
+			currentState: "不篩選",
+			keySet: volm.keys,
+			listOfMaps: volm.listOfMap
+		}),
+	})
 }
 
-export function setStatesFromDataDict(state: StatesType, dataDictObj: DataDictObj) {
-	// const dataDictObjMap:  Map<> = fromJS(dataDictObj)
-	const dataDictObjMap = dfToMap(dataDictObj)
-	// "年度號"
-	let [yearKeysSet, yearMapOfSubtree] = setStatesFromOneLayerDataDict(state.get('year').get('currentState'), dataDictObjMap)
-	// "分類號"
-	// let [kindKeysSet, kindMapOfSubtree] = setStatesFromOneLayerDataDict(state.get('kind').get('currentState'), yearMapOfSubtree)
-	// // "案次號"
-	// let [caseKeysSet, caseMapOfSubtree] = setStatesFromOneLayerDataDict(state.get('case').get('currentState'), kindMapOfSubtree)
-	// // "卷次號"
-	// let [volmKeysSet, volmMapOfSubtree] = setStatesFromOneLayerDataDict(state.get('volm').get('currentState'), volmMapOfSubtree)
+function statesChainUpdater(listOfSubMap: List<DataDictMap>): {keys: KeySet, listOfMap: List<DataDictMap>} {
+	let keys: KeySet = Set([])
+	let newListOfSubMap: List<DataDictMap> = List([])
 
-	// const newState = state.set(year)
-	return state
+	listOfSubMap.map(subMap => {
+		const dataObj = subMap.get('data')
+		if(subMap.get('sort') === "DataDictObj" && typeof(dataObj) === "object" && dataObj) {
+			keys = keys.concat(Object.keys(dataObj))
+			newListOfSubMap = newListOfSubMap.concat(Map(dataObj).toList().map(df => Map(df)))
+
+		} else {
+			console.error("Programming error, this function shouldn't applied to FileContent: ", subMap.toObject())
+		}
+	})
+
+
+	return {keys: keys, listOfMap: newListOfSubMap}
 
 }
 
-function setStatesFromOneLayerDataDict(currentState: string, mapOfSubtree: Map<string, DataDictObj>): Array<KeysSet | Map<string, DataDictObj>> {
-	const keysSet = Set(mapOfSubtree.keys())
-	let newMapOfSubtree: Map<string, DataDictObj> ;
-	if(currentState === "不篩選") {
-		newMapOfSubtree = flatten(mapOfSubtree)
-	} else {
-		newMapOfSubtree = mapOfSubtree.filter((value, key) =>
-			key === currentState
+
+// ex: set kind, than modify currentState of year and all states property of cas_, volm
+export function setState(key: string, nextState: string, lastStates: StatesType): StatesType {
+	const keyOrder = ['year', 'kind', 'cas_', 'volm']
+	const index = keyOrder.findIndex((element) => (element === key))
+
+	let newStates = lastStates.update((keyOrder[index]), value => value.set('currentState', nextState))
+
+
+	let listOfMapTemp: List<DataDictMap> = List([])
+
+	for(var i = index + 1; i < 4; i++) {
+		const newStatesContainer = statesChainUpdater(
+			listOfMapTemp.equals(List([])) ? lastStates.get(keyOrder[i - 1]).get('listOfMaps') : listOfMapTemp
 		)
+		const currentState = lastStates.get(keyOrder[i]).get('currentState');
 
-		newMapOfSubtree = flatten(newMapOfSubtree)
+		const newListOfMapTemp = newStatesContainer.listOfMap
+		const newKeySet = newStatesContainer.keys
+		let newCurrentState = "不篩選"
+		for(let map of newListOfMapTemp.values()) {
+			if(map.has(currentState)) {
+				newCurrentState = currentState
+				break;
+			}
+		}
+
+		newStates = newStates.update(keyOrder[i], (value =>
+			value.set(
+				'currentState', newCurrentState
+			).set(
+				'keySet', newKeySet
+			).set('listOfMaps', newListOfMapTemp
+			)
+		))
+
 	}
-	return [keysSet, newMapOfSubtree]
-}
 
-function flatten(map: Map<string, DataDictObj>): Map<string, DataDictObj> {
-	return map.delete('sort').flatten(true)
+	return newStates
 }
 

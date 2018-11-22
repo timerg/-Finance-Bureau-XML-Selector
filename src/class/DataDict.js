@@ -17,6 +17,10 @@ export type FileJSONObj = {
 
 
 export type DataDictMap = Map<string, "DataDictObj" | "FileContent" | boolean | string | {[string]: DF}>
+// DataDictMap = Map(DF)
+
+export type DF = DataDictMapObj | FileContent
+
 
 export type FileContent = {
 	sort: "FileContent",
@@ -25,9 +29,8 @@ export type FileContent = {
 	isMerge?: boolean
 }
 
-export type DF = DataDictMapObj | FileContent
 
-type DataDictMapObj = {
+export type DataDictMapObj = {
 	sort: "DataDictObj",
 	data: {[string]: DF}
 }
