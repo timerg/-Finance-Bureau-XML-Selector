@@ -28,6 +28,8 @@ type StatesObj = {
 	volm: RecordOf<StateObj>
 }
 
+export type StateType = RecordOf<StateObj>
+
 const defaultStates: StatesObj = {
 	year: CreateState(defaultState),
 	kind: CreateState(defaultState),

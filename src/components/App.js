@@ -53,7 +53,7 @@ type State = {
 
 class App extends React.Component <Props, State>{
 	dataDict: DataDictMap;
-	handleSelect: ({ [string]: number | string }) => void;
+	handleSelect: (key:string, nextState:string) => void;
 	handleCheck: ( SyntheticInputEvent<HTMLInputElement> ) => void;
 	handleCheckAll: ( SyntheticInputEvent<HTMLInputElement> ) => void;
 
@@ -107,45 +107,11 @@ class App extends React.Component <Props, State>{
 				mergeDisplay: mergeCount,
 			}
 		}
-
-
 	}
 
 	// when selection change, update filterState
-	handleSelect(obj: {[string]: number | string}) {
-
-		// let newFilterState = this.state.filterState.setState(obj)
-		//
-		// // show selected things
-		// let filterResult = filterDataDict(this.dataDict, newFilterState.toArray(4))
-		//
-		// const keysToUpdateSet = Set(filterResult.array)
-		//
-		// const newTrInfosMap = this.state.trInfos.map((trInfo, key) => {
-		// 	let newTrInfo
-		// 	if(keysToUpdateSet.has(key)) {
-		// 		newTrInfo = trInfo.set('toShow', true)
-		// 	} else {
-		// 		newTrInfo = trInfo.set('toShow', false)
-		// 	}
-		// 	return newTrInfo
-		// })
-		//
-		// this.setState({trInfos: newTrInfosMap})
-		//
-		//
-		//
-		//
-		// this.setState(state => {
-		// 	state.counter.display = filterResult.array.length
-		// 	state.counter.mergeDisplay = filterResult.mergeCount
-		// 	return state
-		// })
-		//
-		// this.setState({
-		// 		filterState: newFilterState
-		// 	})
-
+	handleSelect(key:string, nextState:string) {
+		this.setState({filterState: setFilterState(key, nextState, this.state.filterState)})
 	}
 
 
@@ -171,17 +137,15 @@ class App extends React.Component <Props, State>{
 
 	render() {
 		return(<>
-			{/*
+			<ErrorPrompt errors={PARSEERROR}/>
+			<CounterDisplayer counter={this.state.counter} fileName={FILENAME} trInfos={this.state.trInfos}/>
+			<section className="contents">
+				<table className="table" id="displayTable">
 				<Selections filterState={this.state.filterState} dataDictMap={this.dataDict.obj} onSelect={this.handleSelect} onCheckAll={this.handleCheckAll}/>
-		*/}
-		<ErrorPrompt errors={PARSEERROR}/>
-		<CounterDisplayer counter={this.state.counter} fileName={FILENAME} trInfos={this.state.trInfos}/>
-		<section className="contents">
-			<table className="table" id="displayTable">
-			<DisplayTable dataDictObj={this.dataDict} trInfos={this.state.trInfos} onCheck={this.handleCheck}/>
-			</table>
-		</section>
-		<UserActions trInfos={this.state.trInfos} />
+				<DisplayTable dataDictObj={this.dataDict} trInfos={this.state.trInfos} onCheck={this.handleCheck}/>
+				</table>
+			</section>
+			<UserActions trInfos={this.state.trInfos} />
 		</>)
 	}
 }

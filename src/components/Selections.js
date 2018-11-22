@@ -4,107 +4,80 @@ import React from 'react'
 
 import { Map, Set } from 'immutable'
 import _ from 'lodash'
-// import { } from 'class/FilterState'
-import type { StatesType } from 'class/FilterState'
+import { setState as setFilterState} from 'class/FilterState'
+import type { StatesType as FilterStateType, StateType as SubFilterStateType } from 'class/FilterState'
 
-import type { DataDictObj } from 'class/DataDict'
+import type { DataDictMap } from 'class/DataDict'
 
 
 
-type Props = {
-	filterState: StatesType,
-	dataDictObj: DataDictObj,
+type SelectionsProps = {
+	filterState: FilterStateType,
+	dataDictMap: DataDictMap,
 	onCheckAll: ( SyntheticInputEvent<HTMLInputElement> ) => void,
-	onSelect: (key: string, value: string) => void,
+	onSelect: (keyVal: string, nextState: string) => void,
 }
 
 
 
 
-const Selections = (props:Props) => {
-	return
+// const Selections = (props:Props) => {
+// 	return
+// }
+
+
+
+
+const Selections = ({ filterState, dataDictMap, onSelect, onCheckAll }: SelectionsProps) => {
+	return <thead>
+          <tr>
+            <th style={{"width": "5%"}}>
+              全選
+			  			<input type="checkBox" id="select-all" onChange={onCheckAll}/>
+            </th>
+						<SelectionTh name="年度號" keyVal='year' state={filterState.get('year')} onSelect={onSelect}/>
+						<SelectionTh name="分類號" keyVal='kind' state={filterState.get('kind')} onSelect={onSelect}/>
+						<SelectionTh name="案次號" keyVal='cas_' state={filterState.get('cas_')} onSelect={onSelect}/>
+						<SelectionTh name="卷次號" keyVal='volm' state={filterState.get('volm')} onSelect={onSelect}/>
+            <th style={{"width": "13key=''%"}}>目次號</th>
+						<th style={{"width": "30%"}} >案由</th>
+          </tr>
+        </thead>
+}
+
+type SelectionTrProps = {
+	name: string,
+	keyVal: string,
+	state: SubFilterStateType,
+	onSelect: (keyVal: string, nextState: string) => void,
+}
+
+const SelectionTh = ({ name, keyVal, state, onSelect }: SelectionTrProps) => {
+	const set = state.get('keySet')
+	const nextState = state.get('currentState')
+	return <th className="selection" style={{"width": "13%"}}>{name}
+	  <select name={keyVal} onChange={(e) => {onSelect(e.target.name, e.target.value)}} value={nextState}>
+			<option key={0} value="不篩選">不篩選</option>
+			{convertSetToOptions(set)}
+	  </select>
+	</th>
 }
 
 
 
 
-// const Selections = ({ filterState, dataDictObj, onSelect, onCheckAll }: SelectionsProps) => {
-//
-// 	let selectionsSetArr = getSelectSetArrFromDict(stateArr, dataDictObj)
-// 	return <thead>
-//           <tr>
-//             <th style={{"width": "5%"}}>
-//               刪除
-// 			  <input type="checkBox" id="select-all" onChange={onCheckAll}/>
-//             </th>
-//             <th className="selection" style={{"width": "13%"}}>
-//               年度
-//               <select name="年度號" onChange={(event) => {
-// 				  onSelect({"年度號": event.target.value})
-// 			  }} value={filterState["年度號"]}>
-// 				{convertSetToOptions(selectionsSetArr[0])}
-//               </select>
-//             </th>
-//             <th className="selection" style={{"width": "13%"}}>
-//               分類號
-//               <select name="分類號" onChange={(event) => {
-// 				  onSelect({"分類號": event.target.value})
-// 			  }} value={filterState["分類號"]}>
-// 				{convertSetToOptions(selectionsSetArr[1])}
-//               </select>
-//             </th>
-//             <th className="selection" style={{"width": "13%"}}>案次號
-//               <select name="案次號" onChange={(event) => {
-// 				  onSelect({"案次號": event.target.value})
-// 			  }} value={filterState["案次號"]}>
-// 				{convertSetToOptions(selectionsSetArr[2])}
-//               </select>
-//             </th>
-//             <th className="selection" style={{"width": "13%"}}>卷次號
-//               <select name="卷次號" onChange={(event) => {
-// 				  onSelect({"卷次號": event.target.value})
-// 			  }} value={filterState["卷次號"]}>
-// 				{convertSetToOptions(selectionsSetArr[3])}
-//               </select>
-//             </th>
-//             <th style={{"width": "13%"}}>目次號</th>
-// 			<th style={{"width": "30%"}} >案由</th>
-//           </tr>
-//         </thead>
-// }
-//
-// type SelectionTrProps = {
-// 	name: string,
-// 	set: Set<string>,
-// 	state: string,
-// 	onSelect: ({ [string]: number | string }) => void,
-// }
-//
-// const selectionTh = ({ name, state, set, onSelect }: SelectionTrProps) => {
-// 	<th className="selection" style={{"width": "13%"}}>{name}
-// 	  <select name={name} onChange={(event) => {
-// 		  onSelect(_.set({}, [name, event.target.value]))
-// 	  }} value={state}>
-// 		{convertSetToOptions(set)}
-// 	  </select>
-// 	</th>
-// }
-//
-//
-//
-//
-//
-// function convertSetToOptions(set) {
-// 	let options = []
-// 	let keyCount = 0
-// 	for (let v of set) {
-// 		let option = <option key={keyCount} value={v}>{v}</option>
-// 		options.push(option)
-// 		keyCount++
-// 	}
-// 	return options
-// }
-//
+
+function convertSetToOptions(set: KeySet) {
+	let options = []
+	let keyCount = 1
+	for (let v of set) {
+		let option = <option key={keyCount} value={v}>{v}</option>
+		options.push(option)
+		keyCount++
+	}
+	return options
+}
+
 
 
 
