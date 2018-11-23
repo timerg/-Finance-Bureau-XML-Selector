@@ -13,7 +13,6 @@ import type { DataDictMap } from 'class/DataDict'
 
 type SelectionsProps = {
 	filterState: FilterStateType,
-	dataDictMap: DataDictMap,
 	onCheckAll: ( SyntheticInputEvent<HTMLInputElement> ) => void,
 	onSelect: (keyVal: string, nextState: string) => void,
 }
@@ -21,14 +20,8 @@ type SelectionsProps = {
 
 
 
-// const Selections = (props:Props) => {
-// 	return
-// }
 
-
-
-
-const Selections = ({ filterState, dataDictMap, onSelect, onCheckAll }: SelectionsProps) => {
+const Selections = ({ filterState, onSelect, onCheckAll }: SelectionsProps) => {
 	return <thead>
           <tr>
             <th style={{"width": "5%"}}>
@@ -67,10 +60,11 @@ const SelectionTh = ({ name, keyVal, state, onSelect }: SelectionTrProps) => {
 
 
 
-function convertSetToOptions(set: KeySet) {
+function convertSetToOptions(set: Set<string>) {
 	let options = []
 	let keyCount = 1
-	for (let v of set) {
+	const setList = set.toList().sort(comparator)
+	for (let v of setList) {
 		let option = <option key={keyCount} value={v}>{v}</option>
 		options.push(option)
 		keyCount++
@@ -78,7 +72,27 @@ function convertSetToOptions(set: KeySet) {
 	return options
 }
 
-
+function comparator(sa: string, sb: string): number {
+	const numa = parseInt(sa)
+	const numb = parseInt(sb)
+	if(numa !== NaN  && numb !== NaN) {
+		if(numa > numb) {
+			return 1
+		} else if (numa === numb) {
+			return 0
+		} else {
+			return -1
+		}
+	} else {
+		if(sa > sb) {
+			return 1
+		} else if (sa === sb) {
+			return 0
+		} else {
+			return -1
+		}
+	}
+}
 
 
 

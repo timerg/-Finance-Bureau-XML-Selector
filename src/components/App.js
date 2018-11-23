@@ -2,7 +2,7 @@
 
 import React from 'react'
 import _ from 'lodash'
-import { Map, Set, Seq, Record } from 'immutable'
+import { Map, Set, Seq, Record, List } from 'immutable'
 import type { RecordFactory, RecordOf } from 'immutable';
 
 import CounterDisplayer from './Counter'
@@ -111,7 +111,10 @@ class App extends React.Component <Props, State>{
 
 	// when selection change, update filterState
 	handleSelect(key:string, nextState:string) {
-		this.setState({filterState: setFilterState(key, nextState, this.state.filterState)})
+		const newFilterState = setFilterState(key, nextState, this.state.filterState)
+		const newTrInfos = getTrInfosFromFilterState(newFilterState.get('file').get('listOfMaps'), this.state.trInfos, this.dataDict)
+
+		this.setState({filterState: newFilterState, trInfos: newTrInfos})
 	}
 
 
@@ -141,7 +144,7 @@ class App extends React.Component <Props, State>{
 			<CounterDisplayer counter={this.state.counter} fileName={FILENAME} trInfos={this.state.trInfos}/>
 			<section className="contents">
 				<table className="table" id="displayTable">
-				<Selections filterState={this.state.filterState} dataDictMap={this.dataDict.obj} onSelect={this.handleSelect} onCheckAll={this.handleCheckAll}/>
+				<Selections filterState={this.state.filterState} dataDictMap={this.dataDict} onSelect={this.handleSelect} onCheckAll={this.handleCheckAll}/>
 				<DisplayTable dataDictObj={this.dataDict} trInfos={this.state.trInfos} onCheck={this.handleCheck}/>
 				</table>
 			</section>
@@ -185,46 +188,28 @@ function initDeleteList(DATA, deleteList=null): { [string]:boolean } {
 }
 
 
+function getTrInfosFromFilterState(fileFilterState: List<DataDictMap>, trInfos: Map<string, TrInfo>, dataDictMap: DataDictMap): Map<string, TrInfo> {
+	let displayedSet: Set<string> = Set([])
+	let newTrInfos = trInfos
+	// O(logn)*n
+	for(let map of fileFilterState) {
+		iterateMap(map, (fileObj, pathRecord) => {
+			displayedSet = displayedSet.add(fileObj['@num'])
+		})
+	}
 
+	// (O(logn) + O(logn))*n
+	iterateMap(dataDictMap, (fileObj) => {
+		let displayed = false
+		if(displayedSet.has(fileObj['@num'])) {
+			displayed = true
+		}
+		newTrInfos = newTrInfos.update(fileObj['@num'], (trInfo): TrInfo => trInfo.set('toShow', displayed))
+	})
 
+	return newTrInfos
+}
 
-// function filterDataDict_ (obj: DataDictObj, stateArr: Array<string>, resultArr: Array<string>, mergeCount: number) {
-// 	if(stateArr.length === 0) {
-// 		iterateDict(obj, (obj) => {
-// 			resultArr.push(obj["@num"])
-// 			if(obj.isMerge) {
-// 				mergeCount++
-// 			}
-// 		})
-// 	} else {
-// 		if(stateArr[0] === "不篩選") {
-// 			_.forOwn(obj, (value, key) => {
-// 					if(key !== "sort" && value.sort === "DataDictObj") {
-// 						let filterResult = filterDataDict_(value, stateArr.slice(1, stateArr.length), [], mergeCount)
-// 						resultArr = resultArr.concat(filterResult.array)
-// 						mergeCount = filterResult.mergeCount
-// 					} else if (value.sort === "FileContent") {
-// 						console.error("programming error")
-// 					}
-// 			})
-// 		} else {
-// 			if(obj[stateArr[0]]) {
-// 				if(obj[stateArr[0]].sort === "DataDictObj") {
-// 					let filterResult = filterDataDict_(obj[stateArr[0]], stateArr.slice(1, stateArr.length), [], mergeCount)
-// 					resultArr = resultArr.concat(filterResult.array)
-// 					mergeCount = filterResult.mergeCount
-// 					} else {
-// 						console.error("Type Error: Programming Error")
-// 					}
-// 				}
-// 		}
-// 	}
-// 	return {array: resultArr, mergeCount: mergeCount}
-// }
-//
-// function filterDataDict(dataDictObj: DataDictObj, stateArr: Array<string>): {array: Array<string>, mergeCount: number} {
-// 	return filterDataDict_(dataDictObj, stateArr, [], 0)
-// }
 
 
 

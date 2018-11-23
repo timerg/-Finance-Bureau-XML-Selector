@@ -141,8 +141,6 @@ function statesChainUpdater(upperListOfSubMap: List<DataDictMap>, upperState?: s
 		}
 	})
 
-	console.log(newListOfSubMap.toJS())
-
 	return {keys: keys, listOfMaps: newListOfSubMap}
 
 }
@@ -175,8 +173,9 @@ export function setState(key: string, nextState: string, lastStates: StatesType)
 				break;
 			}
 		}
-		currentStateValTemp = newCurrentStateVal
+		listOfMapTemp = newListOfMapTemp
 
+		currentStateValTemp = newCurrentStateVal
 		newStates = newStates.update(keyOrder[i], (value =>
 			value.set(
 				'currentState', newCurrentStateVal
