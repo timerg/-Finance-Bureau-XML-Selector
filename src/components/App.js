@@ -6,14 +6,13 @@ import { Map, Set, Seq, Record, List } from 'immutable'
 import type { RecordFactory, RecordOf } from 'immutable';
 
 import CounterDisplayer from './Counter'
-import Selections from './Selections'
-import DisplayTable from './DisplayTable'
 import UserActions from './UserActions'
 import ErrorPrompt from './ErrorPrompt'
+import Section from './TableSection'
 // Class
 import { CreateDataDictMap, iterateMap} from 'class/DataDict'
 import type { FileJSONObj, FileContent, DF, DataDictMap } from 'class/DataDict'
-import { initStatesFromDataDict as initFilterStatesFromDataDict, setState as setFilterState } from 'class/FilterState'
+import { initStatesFromDataDict as initFilterStatesFromDataDict } from 'class/FilterState'
 import type { StatesType as FilterStateType } from 'class/FilterState'
 // import './lib/api.js'
 
@@ -53,17 +52,12 @@ type State = {
 
 class App extends React.Component <Props, State>{
 	dataDict: DataDictMap;
-	handleSelect: (key:string, nextState:string) => void;
-	handleCheck: ( SyntheticInputEvent<HTMLInputElement> ) => void;
-	handleCheckAll: ( SyntheticInputEvent<HTMLInputElement> ) => void;
+	handleUpdateState: ( newState: {}) => void;
 
 
 	constructor() {
 		super()
-
-		this.handleSelect = this.handleSelect.bind(this)
-		this.handleCheck = this.handleCheck.bind(this)
-		this.handleCheckAll = this.handleCheckAll.bind(this)
+		this.handleUpdateState = this.handleUpdateState.bind(this)
 
 		let DATA: Data = initDATA()
 
@@ -109,45 +103,17 @@ class App extends React.Component <Props, State>{
 		}
 	}
 
-	// when selection change, update filterState
-	handleSelect(key:string, nextState:string) {
-		const newFilterState = setFilterState(key, nextState, this.state.filterState)
-		const newTrInfos = getTrInfosFromFilterState(newFilterState.get('file').get('listOfMaps'), this.state.trInfos, this.dataDict)
-
-		this.setState({filterState: newFilterState, trInfos: newTrInfos})
-	}
 
 
-	// when a tr is checked, update deleteListObject
-	handleCheck(event: SyntheticInputEvent<HTMLInputElement>) {
-		const trInfos = this.state.trInfos.update(event.target.value, trInfo => trInfo.set('checked', event.target.checked))
-		this.setState({trInfos})
-	}
-
-	handleCheckAll(event: SyntheticInputEvent<HTMLInputElement>) {
-		const trInfos = this.state.trInfos.map((trInfo, key) => {
-			let newTrInfo = trInfo
-			if(trInfo.get('toShow') === true) {
-				newTrInfo = trInfo.set('checked', event.target.checked)
-				if(!newTrInfo) {
-					console.error("programming error")
-				}
-			}
-			return newTrInfo
-		})
-		this.setState({trInfos})
+	handleUpdateState(newState: {}): void {
+		this.setState(newState)
 	}
 
 	render() {
 		return(<>
 			<ErrorPrompt errors={PARSEERROR}/>
 			<CounterDisplayer counter={this.state.counter} fileName={FILENAME} trInfos={this.state.trInfos}/>
-			<section className="contents">
-				<table className="table" id="displayTable">
-				<Selections filterState={this.state.filterState} dataDictMap={this.dataDict} onSelect={this.handleSelect} onCheckAll={this.handleCheckAll}/>
-				<DisplayTable dataDictObj={this.dataDict} trInfos={this.state.trInfos} onCheck={this.handleCheck}/>
-				</table>
-			</section>
+			<Section filterState={this.state.filterState} dataDictMap={this.dataDict} trInfos={this.state.trInfos} updateState={this.handleUpdateState}/>
 			<UserActions trInfos={this.state.trInfos} />
 		</>)
 	}
@@ -188,27 +154,7 @@ function initDeleteList(DATA, deleteList=null): { [string]:boolean } {
 }
 
 
-function getTrInfosFromFilterState(fileFilterState: List<DataDictMap>, trInfos: Map<string, TrInfo>, dataDictMap: DataDictMap): Map<string, TrInfo> {
-	let displayedSet: Set<string> = Set([])
-	let newTrInfos = trInfos
-	// O(logn)*n
-	for(let map of fileFilterState) {
-		iterateMap(map, (fileObj, pathRecord) => {
-			displayedSet = displayedSet.add(fileObj['@num'])
-		})
-	}
 
-	// (O(logn) + O(logn))*n
-	iterateMap(dataDictMap, (fileObj) => {
-		let displayed = false
-		if(displayedSet.has(fileObj['@num'])) {
-			displayed = true
-		}
-		newTrInfos = newTrInfos.update(fileObj['@num'], (trInfo): TrInfo => trInfo.set('toShow', displayed))
-	})
-
-	return newTrInfos
-}
 
 
 
